@@ -2,41 +2,32 @@ from yattag import Doc
 from yattag import indent
 from html_blocs_class import *
 
+import numpy as np
 # Init Class
 
 html_blocs = html_blocs_class()
-#print(dir(html_blocs))
-doc  = html_blocs.doc
-tag  = html_blocs.tag
-text = html_blocs.text
 
-button_name = ["TOTO", "TITI", "TATA"]
-div_content = ["Hello coco", "Hola", "TOTO"]
+np_array = np.zeros([8, 64], int)
+np_array[:,0] = 5555
+np_array[:,1] = 888
+#print(html_blocs.np_array_2_tab(np_array))
+#print()
 
-doc.asis('<!DOCTYPE html>')
-with tag('html'):
-    with tag('head'):
-        with tag('style'):
-            text('body {font-family: Arial;}')
-            text(html_blocs.tab_style())
-            text(html_blocs.tab_button_style())
-            text(html_blocs.tab_button_hover())
-            text(html_blocs.tab_button_active())
-            text(html_blocs.tab_content())
-            
-    with tag('body'):
-        with tag('h2'):
-            text('BODY')
-
-        html_blocs.multiple_align_button(len(button_name), button_name)
-        html_blocs.multiple_div_tab(len(button_name), button_name, div_content)
+#div_content_list = [html_blocs.np_array_2_tab(np_array), "CONTENT_BUTTON_1"]
 
 
-        html_blocs.tab_script()
-   
-print(indent(doc.getvalue()))
-
+html_page_str = html_blocs.create_page_with_multiple_button(page_name         = "page_name",
+                                                            buttons_name_list = ["BUTTON_0", "BUTTON_1"],
+                                                            div_content_list  = [html_blocs.np_array_2_tab(np_array), "CONTENT_BUTTON_1"])
 
 f = open("index.html", "w")
-f.write(indent(doc.getvalue()))
+f.write(html_page_str)
 f.close()
+
+print(html_page_str)
+
+
+print(dir(html_blocs.doc))
+
+
+
