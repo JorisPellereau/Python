@@ -153,7 +153,9 @@ class html_blocs_class:
     def np_array_2_tab(self,
                        np_array     = np.zeros([10, 2], int),
                        table_name   = "TABLE_NAME",
-                       collumn_name = ["COL_0", "COL_1"]):
+                       collumn_name = ["COL_0", "COL_1"],
+                       int_format   = "HEX",
+                       digit_nb     = 8):
 
         row_nb     = np_array.shape[0]
         collumn_nb = np_array.shape[1] + 1 # Add Index
@@ -184,6 +186,10 @@ class html_blocs_class:
                                 if(i == 0):
                                     text(str(j))
                                 else:
-                                    text(str(np_array[j,i-1]))
+                                    if(int_format == "HEX"):
+                                        digit_format = "{0:0" + str(digit_nb) + "X" + "}"
+                                        text(digit_format.format(np_array[j,i-1]))
+                                    else:
+                                        text(str(np_array[j,i-1]))
                                     
         return indent(doc.getvalue())
