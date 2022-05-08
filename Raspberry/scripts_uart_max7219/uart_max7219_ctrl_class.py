@@ -8,19 +8,27 @@ import os
 
 from uart_class import *
 
-# Path of Python SCN scripts generator
-scn_generator_class = '/home/linux-jp/Documents/GitHub/Verilog/Testbench/scripts/scn_generator'
-sys.path.append(scn_generator_class)
+# PATH for linux
+if(os.getlogin() == "linux-jp"):
+    # Path of Python SCN scripts generator
+    scn_generator_class = '/home/linux-jp/Documents/GitHub/Verilog/Testbench/scripts/scn_generator'
+    sys.path.append(scn_generator_class)
+    
+    macro_uart_display_ctrl_class_path = '/home/linux-jp/Documents/GitHub/VHDL_code/UART/scenarios/scn_lib_uart_display_ctrl'
+    sys.path.append(macro_uart_display_ctrl_class_path)
+
+# PATH for Raspberry
+elif(os.getlogin() == "pi"):
+    scn_generator_class = '/home/pi/GitHub/Verilog/Testbench/scripts/scn_generator'
+    sys.path.append(scn_generator_class)
+
+    macro_uart_display_ctrl_class_path = '/home/pi/GitHub/VHDL_code/UART/scenarios/scn_lib_uart_display_ctrl'
+    sys.path.append(macro_uart_display_ctrl_class_path)
+
 
 # Import Class
 import scn_class
-
-
-macro_uart_display_ctrl_class_path = '/home/linux-jp/Documents/GitHub/VHDL_code/UART/scenarios/scn_lib_uart_display_ctrl'
-sys.path.append(macro_uart_display_ctrl_class_path)
-
 import macros_uart_display_ctrl_class
-
 
 class uart_max7219_ctrl_class:
 
