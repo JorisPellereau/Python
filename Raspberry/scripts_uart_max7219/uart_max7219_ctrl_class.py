@@ -4,14 +4,22 @@
 
 import sys
 import numpy as np
+import os
 
 from uart_class import *
 
-# Path of MAX7219 MODELS
-max7219_models_class = '/home/linux-jp/Documents/GitHub/VHDL_code/MAX7219/scripts/MAX7219_models'
-sys.path.append(max7219_models_class)
+# Path of Python SCN scripts generator
+scn_generator_class = '/home/linux-jp/Documents/GitHub/Verilog/Testbench/scripts/scn_generator'
+sys.path.append(scn_generator_class)
 
-import max7219_models_class
+# Import Class
+import scn_class
+
+
+macro_uart_display_ctrl_class_path = '/home/linux-jp/Documents/GitHub/VHDL_code/UART/scenarios/scn_lib_uart_display_ctrl'
+sys.path.append(macro_uart_display_ctrl_class_path)
+
+import macros_uart_display_ctrl_class
 
 
 class uart_max7219_ctrl_class:
@@ -83,11 +91,29 @@ class uart_max7219_ctrl_class:
         self.uart_inst.init_uart_com()
 
         # MAX7219 Model Class inst
-        self.max7219_models = max7219_models_class.max7219_models_class(scn                      = None,
-                                                                        spi_frame_received_alias = None,
-                                                                        spi_load_received_alias  = None,
-                                                                        spi_data_alias           = None)
+        self.macros_uart_display_ctrl_class = macros_uart_display_ctrl_class.macros_uart_display_ctrl_class(scn = None)
         
+        # PATTERNS
+        self.pattern_0 = [60, 66, 129, 129, 129, 129, 2, 4, 8, 240, 240, 216, 140, 6, 3, 3, 3, 3, 3, 6, 12, 248, 16, 32, 64, \
+                          128, 224, 112, 24, 8, 8, 8, 8, 16, 112, 224, 128, 64, 32, 16, 8, 4, 2, 1, 2, 4, 8, 16, 32, 64, 252, \
+                          8, 16, 60, 8, 31, 2, 4, 8, 16, 32, 72, 84, 35]
+
+        self.pattern_1 = [60, 66, 129, 129, 129, 129, 130, 132, 136, 240, 240, 216, 140, 134, 131, 131, 131, 131, 131, 134, \
+                          140, 248, 16, 32, 64, 128, 224, 112, 28, 26, 233, 25, 234, 28, 112, 224, 128, 64, 32, 16, 8, 132, \
+                          66, 57, 66, 132, 8, 16, 33, 66, 252, 10, 17, 60, 40, 95, 130, 100, 136, 17, 33, 72, 84, 35]
+
+        self.pattern_2 = [255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 6, 3, 49, 73, 73, 49, 1, 5, 29, 5, 1, \
+                          49, 73, 73, 49, 3, 6, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, \
+                          0, 0, 255]
+
+        self.pattern_3 = [255, 0, 0, 129, 66, 36, 24, 24, 36, 66, 129, 0, 0, 0, 0, 0, 0, 0, 12, 6, 3, 49, 73, 73, 49, 1, 5, \
+                          29, 5, 1, 49, 73, 73, 49, 3, 6, 12, 0, 0, 0, 0, 0, 0, 0, 24, 60, 30, 15, 15, 30, 60, 24, 0, 0, 0, \
+                          0, 0, 0, 0, 0, 0, 0, 0, 255]
+
+        self.pattern_list = [self.pattern_0,
+                             self.pattern_1,
+                             self.pattern_2,
+                             self.pattern_3]
         # debug
         # print(type(self.UART_CMD["RUN_PATTERN_SCROLLER"]))
         
@@ -103,7 +129,8 @@ class uart_max7219_ctrl_class:
         self.uart_inst.uart_write_data(data_2_send)
         read_data = self.uart_inst.com_uart.read_until(data_2_check, data_2_check_size)
         if (len(read_data) < data_2_check_size):
-            print("Error a Timeout occurs - Not enough data - Number of data Received %d data : expected %d" %(len(read_data), data_2_check_size) )
+            print("Error a Timeout occurs - Not enough data - Number of data Received %d data : expected %d" %(len(read_data), \
+                                                                                                               data_2_check_size) )
             check = False
         else:
             if(read_data == data_2_check):
