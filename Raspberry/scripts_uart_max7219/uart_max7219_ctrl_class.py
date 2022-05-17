@@ -10,25 +10,17 @@ from uart_class import *
 
 # PATH for linux
 if(os.getlogin() == "linux-jp"):
-    # Path of Python SCN scripts generator
-    scn_generator_class = '/home/linux-jp/Documents/GitHub/Verilog/Testbench/scripts/scn_generator'
-    sys.path.append(scn_generator_class)
-    
-    macro_uart_display_ctrl_class_path = '/home/linux-jp/Documents/GitHub/VHDL_code/UART/scenarios/scn_lib_uart_display_ctrl'
-    sys.path.append(macro_uart_display_ctrl_class_path)
+  
+    max7219_utils_class_path = '/home/linux-jp/Documents/GitHub/VHDL_code/MAX7219/scripts/MAX7219_models'
+    sys.path.append(max7219_utils_class_path)
 
 # PATH for Raspberry
 elif(os.getlogin() == "pi"):
-    scn_generator_class = '/home/pi/GitHub/Verilog/Testbench/scripts/scn_generator'
-    sys.path.append(scn_generator_class)
+      
+    max7219_utils_class_path = '/home/pi/GitHub/VHDL_code/MAX7219/scripts/MAX7219_models'
+    sys.path.append(max7219_utils_class_path)
 
-    macro_uart_display_ctrl_class_path = '/home/pi/GitHub/VHDL_code/UART/scenarios/scn_lib_uart_display_ctrl'
-    sys.path.append(macro_uart_display_ctrl_class_path)
-
-
-# Import Class
-import scn_class
-import macros_uart_display_ctrl_class
+import max7219_utils_class
 
 class uart_max7219_ctrl_class:
 
@@ -98,8 +90,10 @@ class uart_max7219_ctrl_class:
         self.uart_inst = uart_class(baudrate, timeout, bytesize, parity, stopbits)
         self.uart_inst.init_uart_com()
 
-        # MAX7219 Model Class inst
-        self.macros_uart_display_ctrl_class = macros_uart_display_ctrl_class.macros_uart_display_ctrl_class(scn = None)
+        # MAX7219 Utils class inst
+        # Create SCN Class
+       
+        self.max7219_utils = max7219_utils_class.max7219_utils_class()
         
         # PATTERNS
         self.pattern_0 = [60, 66, 129, 129, 129, 129, 2, 4, 8, 240, 240, 216, 140, 6, 3, 3, 3, 3, 3, 6, 12, 248, 16, 32, 64, \
@@ -118,10 +112,14 @@ class uart_max7219_ctrl_class:
                           29, 5, 1, 49, 73, 73, 49, 3, 6, 12, 0, 0, 0, 0, 0, 0, 0, 24, 60, 30, 15, 15, 30, 60, 24, 0, 0, 0, \
                           0, 0, 0, 0, 0, 0, 0, 0, 255]
 
+        self.pattern_4 = [143, 1, 1, 255, 128, 128, 128, 225, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, \
+                          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
         self.pattern_list = [self.pattern_0,
                              self.pattern_1,
                              self.pattern_2,
-                             self.pattern_3]
+                             self.pattern_3,
+                             self.pattern_4]
         # debug
         # print(type(self.UART_CMD["RUN_PATTERN_SCROLLER"]))
         
