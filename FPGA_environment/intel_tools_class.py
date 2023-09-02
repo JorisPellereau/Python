@@ -1,0 +1,141 @@
+
+import os
+import sys
+import csv
+
+
+class intel_tools_class:
+    """
+    This class contains methods used for the utilization of Quartus software from Intel
+    """
+    #    def __init__(self):
+
+    def create_project(self, family, revision, project_name):
+        """
+        """
+        outputs_lines = []
+        outputs_lines.append("project_new -family {0} -revision {1} {2}".format(family, revision, project_name))
+        outputs_lines.append("export_assignments")
+        outputs_lines.append("project_close")
+        return outputs_lines
+
+    def set_project_config(self, family, device, top_level_entity):
+        """
+        This methods add project configuration TCL command to a list of string.
+        """
+
+        outputs_lines = []
+
+        outputs_lines.append("\n# Set Project Configuration")
+        
+        outputs_lines.append("set_global_assignment -name FAMILY {0}".format(family))
+        outputs_lines.append("set_global_assignment -name DEVICE {0}".format(device))
+        outputs_lines.append("set_global_assignment -name TOP_LEVEL_ENTITY {0}".format(top_level_entity))
+        return outputs_lines
+    
+
+    def pinout_extract_config(self, csv_file):
+        """
+        This function extract information from an input csv file.
+        It returns a list of string which contain pinout parameters.
+
+        :param csv_file: The CSV file to read
+        :type csv_file: string
+
+        :return: The list of command
+        :rtype: list[str]
+        """
+        
+        set_pin_location_list = [] # List of the Set pin location
+        set_io_standard_list  = [] # List of Set IO Standard
+        set_pull_up_list      = [] # List of Set PULL UP
+        set_drive_list        = [] # List of DRIVE/STRENGTH
+
+        outputs_lines = [] # Output Lines
+        with open(csv_file, newline='') as csvfile:
+            csvreader = csv.reader(csvfile, delimiter = ';')
+
+            print("csvreader : ")
+            print(dir(csvreader))
+            for i, row in enumerate(csvreader):
+
+                # Skip the first line
+                if(i > 0):
+                    info = row[0].split(',')
+                    port_name  = info[0]
+                    direction  = info[1]
+                    location   = info[2]
+                    bank       = info[3]
+                    standard   = info[4]
+                    pull_up    = info[5]
+                    drive      = info[6]
+                    terminason = info[7]
+                    set_pin_location_list.append("set_location_assigment PIN_{0} -to {1}".format(location, port_name))
+                    set_io_standard_list.append("set_instance_assigment -name IO_STANDARD {0} -to {1}".format(standard, port_name))
+
+                    # Add a pull up only if /= NA
+                    if(pull_up != "NA"):
+                        set_pull_up_list.append("set_instance_assigment -name WEAK_PULL_UP_RESISTOR {0} -to {1}".format(pull_up, port_name))
+
+                        # Add output DRIVE STRENGTH only for outputs    
+                        if(direction == "out" or "OUT"):
+                            set_drive_list.append("set_instance_assigment -name CURRENT_STRENGTH_NEW {0} to {1}".format(drive, port_name))
+
+
+        outputs_lines.append("# Set Pin Location")
+        outputs_lines = outputs_lines + set_pin_location_list
+        outputs_lines.append("\n# Set IO STANDARD")
+        outputs_lines += set_io_standard_list
+        outputs_lines.append("\n# Set PULL UP")
+        outputs_lines += set_pull_up_list
+        outputs_lines.append("\n# Set DRIVE")
+        outputs_lines += set_drive_list
+
+        return outputs_lines
+
+
+    def set_global_param(self,
+                         CRC_ERROR_CHECKING            = 'OFF',
+                         crc_error_open_drain          = 'off',
+                         ERROR_CHECK_FREQUENCY_DIVISOR = 16
+    ):
+        """
+        It returns a list of string containing global configuration
+        """
+
+        outputs_lines = []
+
+        outputs_lines.append("\n# Set Global Configuration")
+        outputs_lines.append("set_global_assignment -name CRC_ERROR_CHECKING {0}".format(CRC_ERROR_CHECKING))
+        outputs_lines.append("set_global_assignment -name crc_error_open_drain {0}".format(crc_error_open_drain))
+        outputs_lines.append("set_global_assignment -name ERROR_CHECK_FREQUENCY_DIVISOR {0}".format(ERROR_CHECK_FREQUENCY_DIVISOR))
+        return outputs_lines
+
+
+    def create_project_file(self, family, revision, project_name, file_name):
+        """
+        """
+
+        outputs_lines = self.create_project(family, revision, project_name)
+        with open (file_name, 'w') as writer:
+            writer.writelines('\n'.join(outputs_lines))
+
+        print("create_project_file done.")
+
+
+
+    def create_setup_file(self, project_name, csv_file, file_name):
+        """
+        """
+
+        outputs_lines = []
+        outputs_lines.append("project_new {0} -overwrite".format(project_name))
+        pinout_lines = self.pinout_extract_config(csv_file)
+        outputs_lines += pinout_lines
+        outputs_lines.append("export_assignments")
+        outputs_lines.append("project_close")
+        
+        with open (file_name, 'w') as writer:
+            writer.writelines('\n'.join(outputs_lines))
+
+        print("create_setup_file done.")
