@@ -34,6 +34,10 @@ class intel_tools_class:
         return outputs_lines
     
 
+    # Possible Standard parameter :
+    # 2.5 V
+    # 3.3-V LVTTL
+    # 3.3-V LVCMOS
     def pinout_extract_config(self, csv_file):
         """
         This function extract information from an input csv file.
@@ -50,6 +54,7 @@ class intel_tools_class:
         set_io_standard_list  = [] # List of Set IO Standard
         set_pull_up_list      = [] # List of Set PULL UP
         set_drive_list        = [] # List of DRIVE/STRENGTH
+        set_slew_rate_list    = [] # List of SLEW RATE
 
         outputs_lines = [] # Output Lines
         with open(csv_file, newline='') as csvfile:
@@ -69,18 +74,24 @@ class intel_tools_class:
                     standard   = info[4]
                     pull_up    = info[5]
                     drive      = info[6]
-                    terminason = info[7]
-                    set_pin_location_list.append("set_location_assigment PIN_{0} -to {1}".format(location, port_name))
-                    set_io_standard_list.append("set_instance_assigment -name IO_STANDARD {0} -to {1}".format(standard, port_name))
+                    slew_rate  = info[7]
+                    terminason = info[8]
+                    set_pin_location_list.append("set_location_assignment PIN_{0} -to {1}".format(location, port_name))
+                    set_io_standard_list.append("set_instance_assignment -name IO_STANDARD \"{0}\" -to {1}".format(standard, port_name))
 
+                    #print("DEBUG : slew_rate : %s" %(slew_rate))
                     # Add a pull up only if /= NA
                     if(pull_up != "NA"):
-                        set_pull_up_list.append("set_instance_assigment -name WEAK_PULL_UP_RESISTOR {0} -to {1}".format(pull_up, port_name))
+                        set_pull_up_list.append("set_instance_assignment -name WEAK_PULL_UP_RESISTOR {0} -to {1}".format(pull_up, port_name))
 
-                        # Add output DRIVE STRENGTH only for outputs    
-                        if(direction == "out" or "OUT"):
-                            set_drive_list.append("set_instance_assigment -name CURRENT_STRENGTH_NEW {0} to {1}".format(drive, port_name))
+                    # Add output DRIVE STRENGTH only for outputs    
+                    if(direction == ("out" or "OUT") and drive != "NA"):
+                        #print("PORT_NAME/direction  : %s - %s" %(port_name, direction))
+                        set_drive_list.append("set_instance_assignment -name CURRENT_STRENGTH_NEW {0} -to {1}".format(drive, port_name))
 
+                    # Add SLEW Rate. Only for outputs
+                    if(direction == ("out" or "OUT")):
+                        set_slew_rate_list.append("set_instance_assignment -name SLEW_RATE {0} -to {1}".format(slew_rate, port_name))
 
         outputs_lines.append("# Set Pin Location")
         outputs_lines = outputs_lines + set_pin_location_list
@@ -90,6 +101,9 @@ class intel_tools_class:
         outputs_lines += set_pull_up_list
         outputs_lines.append("\n# Set DRIVE")
         outputs_lines += set_drive_list
+        outputs_lines.append("\n# Set SLEW RATE")
+        outputs_lines += set_slew_rate_list
+        
 
         return outputs_lines
 
@@ -111,6 +125,16 @@ class intel_tools_class:
         outputs_lines.append("set_global_assignment -name ERROR_CHECK_FREQUENCY_DIVISOR {0}".format(ERROR_CHECK_FREQUENCY_DIVISOR))
         return outputs_lines
 
+    def set_sdc_file(self, sdc_file):
+        """
+        It returns a string that contains the line that specify the .sdc file to use in the .qsf files
+        """
+        outputs_lines = []
+
+        outputs_lines.append("\n# Set SDC FILE")
+        outputs_lines.append("set_global_assignment -name SDC_FILE {0}".format(sdc_file))
+        return outputs_lines
+        
 
     def create_project_file(self, family, revision, project_name, file_name):
         """
@@ -123,15 +147,29 @@ class intel_tools_class:
         print("create_project_file done.")
 
 
+    def create_fit_warn_error_report(self):
+        """
+        Create a csv file that contains warning and error from FIT
+        """
+        None
 
-    def create_setup_file(self, project_name, csv_file, file_name):
+    def create_setup_file(self, project_name, csv_file, file_name, sdc_file):
         """
         """
 
         outputs_lines = []
-        outputs_lines.append("project_new {0} -overwrite".format(project_name))
+        outputs_lines.append("project_new {0} -overwrite".format(project_name)) # Overwrite the project
+
+        # Get Pinouts Commands
         pinout_lines = self.pinout_extract_config(csv_file)
         outputs_lines += pinout_lines
+
+        # Get SDC File Command
+        outputs_lines += self.set_sdc_file(sdc_file)
+
+        # Get GLOBAL Commands
+        # TBD
+        
         outputs_lines.append("export_assignments")
         outputs_lines.append("project_close")
         
