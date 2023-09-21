@@ -60,8 +60,8 @@ class intel_tools_class:
         with open(csv_file, newline='') as csvfile:
             csvreader = csv.reader(csvfile, delimiter = ';')
 
-            print("csvreader : ")
-            print(dir(csvreader))
+            #print("csvreader : ")
+            #print(dir(csvreader))
             for i, row in enumerate(csvreader):
 
                 # Skip the first line
@@ -76,21 +76,22 @@ class intel_tools_class:
                     drive      = info[6]
                     slew_rate  = info[7]
                     terminason = info[8]
+
+                    # Set Pin Location
                     set_pin_location_list.append("set_location_assignment PIN_{0} -to {1}".format(location, port_name))
+
+                    # Set IO Standard
                     set_io_standard_list.append("set_instance_assignment -name IO_STANDARD \"{0}\" -to {1}".format(standard, port_name))
 
-                    #print("DEBUG : slew_rate : %s" %(slew_rate))
                     # Add a pull up only if /= NA
                     if(pull_up != "NA"):
                         set_pull_up_list.append("set_instance_assignment -name WEAK_PULL_UP_RESISTOR {0} -to {1}".format(pull_up, port_name))
-
                     # Add output DRIVE STRENGTH only for outputs    
-                    if(direction == ("out" or "OUT") and drive != "NA"):
-                        #print("PORT_NAME/direction  : %s - %s" %(port_name, direction))
+                    if( (direction.lower() == "out" or direction.lower() == "inout") and drive != "NA"):
                         set_drive_list.append("set_instance_assignment -name CURRENT_STRENGTH_NEW {0} -to {1}".format(drive, port_name))
 
                     # Add SLEW Rate. Only for outputs
-                    if(direction == ("out" or "OUT")):
+                    if(direction.lower() == "out" or direction.lower() == "inout"):
                         set_slew_rate_list.append("set_instance_assignment -name SLEW_RATE {0} -to {1}".format(slew_rate, port_name))
 
         outputs_lines.append("# Set Pin Location")
@@ -153,7 +154,21 @@ class intel_tools_class:
         """
         None
 
-    def create_setup_file(self, project_name, csv_file, file_name, sdc_file):
+    def set_custom_cmd(self, custom_cmd):
+        outputs_lines = []
+        outputs_lines.append("\n# CUSTOM Commands")
+
+        # Add a single commands
+        if(type(custom_cmd) == str):
+            outputs_lines.append(custom_cmd)
+            
+        elif(type(custom_cmd) == list):
+            for i in custom_cmd:
+                outputs_lines.append(i)
+
+        return outputs_lines
+
+    def create_setup_file(self, project_name, csv_file, file_name, sdc_file, custom_cmd):
         """
         """
 
@@ -169,7 +184,12 @@ class intel_tools_class:
 
         # Get GLOBAL Commands
         # TBD
-        
+
+        # Custom Command 
+        outputs_lines += self.set_custom_cmd(custom_cmd)
+
+        # Export and Close
+        outputs_lines.append("\n")
         outputs_lines.append("export_assignments")
         outputs_lines.append("project_close")
         
