@@ -2,6 +2,7 @@
 import os
 import sys
 import csv
+import re
 
 
 class intel_tools_class:
@@ -197,3 +198,88 @@ class intel_tools_class:
             writer.writelines('\n'.join(outputs_lines))
 
         print("create_setup_file done.")
+
+
+
+    def create_init_rom_str_var(self, o_file_path, data_list, mem_data_width, mem_depth, mk_file_name, mk_file_path, default_data = 0x00000000):
+        """
+        This function allows to create a file with will contains a Makefile variable used in order to initialized a generic parameter of an entity (Array)
+        """
+        data_array = []
+        data_format = "{0:0" + str(mem_data_width) + "b}"
+
+        # Initialized the array
+        for i in range(0, mem_depth):
+            data_array.append(data_format.format(default_data))
+        
+
+        # Update the usefull data
+        # Get the addr of the data and set it
+        # i[0] == Addr
+        # i[1] == data
+        for i in data_list:
+            data_array[i[0]] = data_format.format(int(i[1], 16))
+
+
+        # Add double quote for each data
+        for i in range(0, len(data_array)):
+            #data_array[i] =  "\\" + "\"" + data_array[i] + "\\" + "\""
+            data_array[i] =  "B\\\"{0}\\\"".format(data_array[i])
+
+        # Add "," between each data
+        data_array = ",".join(data_array)
+
+        # Add A prefix and parenthesis
+        #       data_array =  "\"" + "{" + data_array + "}" + "\""
+        #        data_array = "\"set_parameter -entity zipcpu_axi4_lite_core -name G_ROM_INIT A(\\\"B\\\"1111111111111111\\\"\\\")\""
+        data_array = "\"set_parameter -entity zipcpu_axi4_lite_core -name G_ROM_INIT A({0})\"".format(data_array) # PREK OK !!
+#       data_array = "\"set_parameter -entity i_zipcpu_axi4_lite_core_0 -name G_ROM_INIT 8\""
+
+        #"\\\"A(" + data_array + ")" + "\\\""
+
+        with open (mk_file_path + "/" + mk_file_name + ".mk", 'w') as writer:
+            writer.write("{0} = {1}".format("INIT_ROM_" + mk_file_name.upper(), data_array))
+        
+
+
+    def warn_error_to_csv(self, file_in, csv_file_out):
+        """
+        Search for Warning or Error and write in into a csv file
+        """
+        
+        idx_cnt = 0
+        csv_info_list = [] # CSV Info list to add in the CSV file
+        
+        # Open files and get lines into list
+        with open (file_in, 'r') as reader:
+            lines_list = reader.readlines()
+
+        # Regex Pattern
+        pattern = '^Warn|^Critical'
+
+        # Read Each Line
+        for i, line_str in enumerate(lines_list):
+            result = re.search(pattern, line_str)
+
+            # If the result is different from None -> Get infos
+            if(result != None):
+                csv_info_list.append([idx_cnt, i, line_str[:-1]]) # Write the index number, the line of the error/warn and the line without the \n
+                idx_cnt += 1 # Inc the counter
+
+
+
+        # Write csv file
+        with open (csv_file_out, 'w', newline = '') as f:
+            #writer = csv.writer(f)
+
+            fieldnames = ['Index', 'Lines', 'Warning or Error', 'Comments'] # Set the Header
+            writer     = csv.writer(f)
+            writer.writerow(fieldnames) # Write the header
+
+            # For each index of the csv info list
+            for i in csv_info_list:
+                writer.writerow(i)
+
+
+        print("warn_error_to_csv done. Output file : %s" %(csv_file_out))
+        print("Error/Warning number : %d" %(idx_cnt))

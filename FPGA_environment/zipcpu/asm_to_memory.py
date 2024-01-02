@@ -40,24 +40,20 @@ def mem_list_to_phy_mem_list(mem_list):
 
 
 # Main Scripts
-
-# test             = sys.argv[1] # Get the test name
-# zip_as_path      = sys.argv[2]
-# zip_objdump_path = sys.argv[3] 
-# scn_path         = sys.argv[4]
-# as_file_path     = sys.argv[5]
-
-def main_asm_to_memory(test, zip_tools_path, scn_path, o_file_path):
+def main_asm_to_memory(asm_file_path, asm_file, zip_tools_path, o_file_path):
+    """
+    
+    """
     zip_as      = zip_tools_path + "/zip-as"
     zip_objdump = zip_tools_path + "/zip-objdump"
-    o_file           = o_file_path + "/" + test + ".o"
-    dissasemble_file = o_file_path + "/" + test + "_dissasemble.txt"
+    o_file           = o_file_path + "/" + asm_file + ".o"
+    dissasemble_file = o_file_path + "/" + asm_file + "_dissasemble.txt"
 
     # Run ASM Scripts
-    subprocess.call([zip_as, scn_path + "/" + test + ".s", "-o", o_file]) # Compile the asm scripts
+    subprocess.call([zip_as, asm_file_path + "/" + asm_file, "-o", o_file]) # Compile the asm scripts
 
     # Run OBJDump Script and get outputs into a str
-    diss_str = subprocess.check_output([zip_objdump, "-S", "-D", "-g", o_file], text=True) # Dissable the script and genarate the temporary file
+    diss_str = subprocess.check_output([zip_objdump, "-S", "-D", "-g", o_file], text=True) # Disassemble the script and genarate the temporary file
     lines_list = diss_str.split("\n")
 
     mem_data_list = dissasemble_lins_list_to_mem_list(lines_list) # Get the Addr and its data
