@@ -47,7 +47,7 @@ def main_asm_to_memory(asm_file_path, asm_file, zip_tools_path, o_file_path):
     zip_as      = zip_tools_path + "/zip-as"
     zip_objdump = zip_tools_path + "/zip-objdump"
     o_file           = o_file_path + "/" + asm_file + ".o"
-    dissasemble_file = o_file_path + "/" + asm_file + "_dissasemble.txt"
+    #dissasemble_file = o_file_path + "/" + asm_file + "_dissasemble.txt"
 
     # Run ASM Scripts
     subprocess.call([zip_as, asm_file_path + "/" + asm_file, "-o", o_file]) # Compile the asm scripts

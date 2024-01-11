@@ -255,7 +255,7 @@ class intel_tools_class:
             lines_list = reader.readlines()
 
         # Regex Pattern
-        pattern = '^Warn|^Critical'
+        pattern = '^Warn|^Critical|^[ ]*Warn'
 
         # Read Each Line
         for i, line_str in enumerate(lines_list):
