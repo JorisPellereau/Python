@@ -1,0 +1,15 @@
+grep -E '(i_\w* : \w*$)|(i_\w* : entity \w*.\w*$)' ./zipcpu_axi4_lite_core.vhd
+
+(i_\w* : \w*$)|(i_\w* : entity \w*.\w*$)|(\w* : entity)|(\w* : \w*$)
+
+
+
+(i_\w*\s+:\s+\w*$)|(i_\w*\s+:\s+entity\s+\w*.\w*$)|(\w*\s+:\s+entity)|(\w*\s+:\s+\w*$)
+
+
+
+((?!(^[-])\w*)\s+:\s+\w*$
+
+
+-- Toutes les lignes qui ne commencent pas par un commentaire
+/^(?![-])(\s*)(\w*)(\s+:)(\s+entity|\s+\w*$)/gm

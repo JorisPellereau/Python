@@ -283,3 +283,54 @@ class intel_tools_class:
 
         print("warn_error_to_csv done. Output file : %s" %(csv_file_out))
         print("Error/Warning number : %d" %(idx_cnt))
+
+
+    def extract_info_from_rpt_table(self, table_txt):
+        """
+        Extract information from table in report
+        """
+
+        # Extraire les en-têtes et les lignes du tableau
+        # Skip the index 0
+        headers_line = table_text.split('\n')[1]
+        collumns     = table_text.split('\n')[3]
+        data_lines   = table_text.split('\n')[5:-2]
+
+        # Extraire les en-têtes
+        headers = [header.strip() for header in headers_line.split(';') if header.strip()]
+
+        # Get Collumns info
+        column_info = [col.strip() for col in collumns.split(';') if col.strip()]
+
+        # Extraire les lignes de données
+        data_list = []
+        for i in data_lines:
+            data_list.append([tmp.strip() for tmp in i.split(';') if tmp.strip()])
+
+        # Créer un DataFrame pandas avec les données extraites
+        df = pd.DataFrame(data_list, columns=column_info)
+
+        return df
+
+
+    def extract_rpt_toc(self, rpt_lines):
+        """
+        Extract RPT Table of Content
+        """
+
+        toc_list    = [] # List of TOC
+        toc_pattern = re.compile(r'^\s+[0-9]*[.]') # TOC Pattern
+
+        for i in rpt_lines:
+            match = pattern.search(line)
+            if match:
+                toc_list.append(i) # Add to the list the content of the line
+            else:
+                None
+
+
+        nb_char_to_remove = len(str(len(toc_list)))
+        # Remove useless content number
+        for i, value in enumerate(toc_list):
+            toc_list[i] = toc_list[1][nb_char_to_remov:]
+        
